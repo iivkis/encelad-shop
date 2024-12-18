@@ -1,0 +1,37 @@
+services:
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: .Dockerfile
+    volumes:
+      - ./migrations:/app/migrations
+    env_file: .env
+    ports:
+      - 80:80
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+
+  # rust-service:
+  #   build:
+  #     context: ./rust-service
+  #     dockerfile: .Dockerfile
+  #   env_file: .env
+
+  postgres-db:
+    image: postgres:14.15-alpine3.21
+    environment:
+      - POSTGRES_DB=${postgres_database_name}
+      - POSTGRES_USER=${postgres_database_user}
+      - POSTGRES_PASSWORD=${postgres_database_password}
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "$postgres_database_user", "-d", "$postgres_database_name" ]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
