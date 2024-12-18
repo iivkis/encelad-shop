@@ -34,14 +34,14 @@ func main() {
 		Lastname:  "Super",
 	})
 
-	httpHandler := httphandler.NewHTTPHandler(
+	HTTPHandler := httphandler.NewHTTPHandler(
 		httphandler.NewUserHTTPHandler(
 			UserService,
 		),
 	)
 
 	fmt.Println("server is runnig")
-	if err := http.ListenAndServe(":80", httpHandler.Router); err != nil {
+	if err := http.ListenAndServe(":80", HTTPHandler.Router); err != nil {
 		panic(err)
 	}
 

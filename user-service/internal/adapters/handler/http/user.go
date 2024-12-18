@@ -2,7 +2,8 @@ package httphandler
 
 import (
 	"enceland_user-service/internal/core/ports"
-	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -31,20 +32,28 @@ func (h *UserHTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		panic(err)
+		HTTPJsonErr(w, http.StatusBadRequest, err)
+		return
 	}
 
 	user, err := h.UserSvc.GetByID(r.Context(), id)
 	if err != nil {
-		panic(err)
+		if errors.Is(err, ports.ErrNotFound) {
+			HTTPJsonErr(w, http.StatusNotFound, fmt.Errorf("user not found with id: %d", id))
+		} else {
+			HTTPJsonErr(w, http.StatusInternalServerError, nil)
+		}
+		return
 	}
 
-	if err := json.NewEncoder(w).Encode(UserGetByIDResponse{
-		ID:        user.GetID(),
-		Firstname: user.GetFirstname(),
-		Lastname:  user.GetLastname(),
-		Role:      user.GetRole().String(),
-	}); err != nil {
-		panic(err)
-	}
+	HTTPJsonOk(
+		w,
+		http.StatusOK,
+		UserGetByIDResponse{
+			ID:        user.GetID(),
+			Firstname: user.GetFirstname(),
+			Lastname:  user.GetLastname(),
+			Role:      user.GetRole().String(),
+		},
+	)
 }
