@@ -1,6 +1,7 @@
 package httphandler
 
 import (
+	"encelad-shared/pkg/responder"
 	"encelad-shared/ports"
 	"encoding/json"
 	"errors"
@@ -12,14 +13,14 @@ import (
 )
 
 type UserHTTPHandler struct {
-	UserSvc ports.UserService
-	encoder *ResponseEncoder
+	UserService ports.UserService
+	responder   *responder.Responder
 }
 
 func NewUserHTTPHandler(UserService ports.UserService) *UserHTTPHandler {
 	return &UserHTTPHandler{
-		UserSvc: UserService,
-		encoder: NewResponseEncoder(),
+		UserService: UserService,
+		responder:   responder.NewResponder(),
 	}
 }
 
@@ -35,21 +36,21 @@ func (h *UserHTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		h.encoder.JsonErr(w, http.StatusBadRequest, err)
+		h.responder.JsonErr(w, http.StatusBadRequest, err)
 		return
 	}
 
-	user, err := h.UserSvc.GetByID(r.Context(), id)
+	user, err := h.UserService.GetByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) {
-			h.encoder.JsonErr(w, http.StatusNotFound, fmt.Errorf("user not found with id: %d", id))
+			h.responder.JsonErr(w, http.StatusNotFound, fmt.Errorf("user not found with id: %d", id))
 		} else {
-			h.encoder.JsonErr(w, http.StatusInternalServerError, nil)
+			h.responder.JsonErr(w, http.StatusInternalServerError, nil)
 		}
 		return
 	}
 
-	h.encoder.JsonOk(
+	h.responder.JsonOk(
 		w,
 		http.StatusOK,
 		UserGetByIDResponse{
@@ -76,19 +77,19 @@ type UserCreateResponse struct {
 func (h *UserHTTPHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var body UserCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		h.encoder.JsonErr(w, http.StatusBadRequest, err)
+		h.responder.JsonErr(w, http.StatusBadRequest, err)
 		return
 	}
 
 	userIn := ports.CreateUserIn(body)
 
-	user, err := h.UserSvc.Create(r.Context(), &userIn)
+	user, err := h.UserService.Create(r.Context(), &userIn)
 	if err != nil {
-		h.encoder.JsonErr(w, http.StatusInternalServerError, nil)
+		h.responder.JsonErr(w, http.StatusInternalServerError, nil)
 		return
 	}
 
-	h.encoder.JsonOk(
+	h.responder.JsonOk(
 		w,
 		http.StatusCreated,
 		UserCreateResponse{
@@ -113,13 +114,13 @@ func (h *UserHTTPHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		h.encoder.JsonErr(w, http.StatusBadRequest, err)
+		h.responder.JsonErr(w, http.StatusBadRequest, err)
 		return
 	}
 
 	var body UserUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		h.encoder.JsonErr(w, http.StatusBadRequest, err)
+		h.responder.JsonErr(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -128,17 +129,17 @@ func (h *UserHTTPHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Lastname:  body.Lastname,
 	}
 
-	user, err := h.UserSvc.Update(r.Context(), id, &userIn)
+	user, err := h.UserService.Update(r.Context(), id, &userIn)
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) {
-			h.encoder.JsonErr(w, http.StatusNotFound, fmt.Errorf("user not found with id: %d", id))
+			h.responder.JsonErr(w, http.StatusNotFound, fmt.Errorf("user not found with id: %d", id))
 		} else {
-			h.encoder.JsonErr(w, http.StatusInternalServerError, nil)
+			h.responder.JsonErr(w, http.StatusInternalServerError, nil)
 		}
 		return
 	}
 
-	h.encoder.JsonOk(
+	h.responder.JsonOk(
 		w,
 		http.StatusOK,
 		UserUpdateResponse{

@@ -1,18 +1,18 @@
-package httphandler
+package responder
 
 import (
 	"encoding/json"
 	"net/http"
 )
 
-type ResponseEncoder struct {
+type Responder struct {
 }
 
-func NewResponseEncoder() *ResponseEncoder {
-	return &ResponseEncoder{}
+func NewResponder() *Responder {
+	return &Responder{}
 }
 
-func (w *ResponseEncoder) JsonOk(writer http.ResponseWriter, status int, data any) {
+func (w *Responder) JsonOk(writer http.ResponseWriter, status int, data any) {
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(status)
 
@@ -26,7 +26,7 @@ func (w *ResponseEncoder) JsonOk(writer http.ResponseWriter, status int, data an
 	}
 }
 
-func (w *ResponseEncoder) JsonErr(writer http.ResponseWriter, status int, err error) {
+func (w *Responder) JsonErr(writer http.ResponseWriter, status int, err error) {
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(status)
 
