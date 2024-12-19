@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	"encelad-shared/ports"
+	"encelad-shared/core/ports"
 	"errors"
 
 	"github.com/golang-migrate/migrate/v4"
