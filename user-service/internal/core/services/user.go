@@ -2,8 +2,8 @@ package services
 
 import (
 	"context"
-	"encelad-shared/domain"
-	"encelad-shared/ports"
+	"encelad-shared/core/domain"
+	"encelad-shared/core/ports"
 )
 
 type UserServiceImpl struct {
