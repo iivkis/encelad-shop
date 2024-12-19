@@ -21,6 +21,7 @@ func (w *ResponseEncoder) JsonOk(writer http.ResponseWriter, status int, data an
 	}
 
 	if err := json.NewEncoder(writer).Encode(data); err != nil {
+		// TODO:Убрать панику
 		panic(err)
 	}
 }
@@ -35,6 +36,7 @@ func (w *ResponseEncoder) JsonErr(writer http.ResponseWriter, status int, err er
 	}
 
 	if err := json.NewEncoder(writer).Encode(data); err != nil {
+		// TODO:Убрать панику
 		panic(err)
 	}
 }
