@@ -1,10 +1,8 @@
 package main
 
 import (
-	"context"
 	"encelad-shared/adapters/database"
 	"encelad-shared/config"
-	"encelad-shared/core/ports"
 	httphandler "enceland_user-service/internal/adapters/handler/http"
 	"enceland_user-service/internal/adapters/repository"
 	"enceland_user-service/internal/core/services"
@@ -28,11 +26,6 @@ func main() {
 	UserRepository := repository.NewUserPostgresRepository(db)
 
 	UserService := services.NewUserService(UserRepository)
-
-	UserService.Create(context.Background(), &ports.CreateUserIn{
-		Firstname: "Ivan",
-		Lastname:  "Super",
-	})
 
 	HTTPHandler := httphandler.NewHTTPHandler(
 		httphandler.NewUserHTTPHandler(
