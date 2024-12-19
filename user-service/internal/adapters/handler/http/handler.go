@@ -23,6 +23,8 @@ func (h *HTTPHandler) setupAPI() {
 
 	api.Route("/users", func(r chi.Router) {
 		r.Get("/{id}", h.UserHTTPHandler.GetByID)
+		r.Post("/", h.UserHTTPHandler.Create)
+		r.Put("/{id}", h.UserHTTPHandler.Update)
 	})
 
 	h.Router.Mount("/api/v1", api)

@@ -5,7 +5,14 @@ import (
 	"net/http"
 )
 
-func HTTPJsonOk(writer http.ResponseWriter, status int, data any) {
+type ResponseEncoder struct {
+}
+
+func NewResponseEncoder() *ResponseEncoder {
+	return &ResponseEncoder{}
+}
+
+func (w *ResponseEncoder) JsonOk(writer http.ResponseWriter, status int, data any) {
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(status)
 
@@ -18,7 +25,7 @@ func HTTPJsonOk(writer http.ResponseWriter, status int, data any) {
 	}
 }
 
-func HTTPJsonErr(writer http.ResponseWriter, status int, err error) {
+func (w *ResponseEncoder) JsonErr(writer http.ResponseWriter, status int, err error) {
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(status)
 
