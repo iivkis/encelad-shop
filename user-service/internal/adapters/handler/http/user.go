@@ -65,6 +65,7 @@ func (h *UserHTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 type UserCreateRequest struct {
 	Firstname string `json:"firstname"`
 	Lastname  string `json:"lastname"`
+	Password  string `json:"password"`
 }
 
 type UserCreateResponse struct {
@@ -81,9 +82,12 @@ func (h *UserHTTPHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIn := ports.CreateUserIn(body)
+	user, err := h.UserService.Create(r.Context(),
+		body.Firstname,
+		body.Lastname,
+		body.Password,
+	)
 
-	user, err := h.UserService.Create(r.Context(), &userIn)
 	if err != nil {
 		h.responder.JsonErr(w, http.StatusInternalServerError, nil)
 		return
@@ -124,12 +128,12 @@ func (h *UserHTTPHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIn := ports.UpdateUserIn{
-		Firstname: body.Firstname,
-		Lastname:  body.Lastname,
-	}
-
-	user, err := h.UserService.Update(r.Context(), id, &userIn)
+	user, err := h.UserService.Update(
+		r.Context(),
+		id,
+		body.Firstname,
+		body.Lastname,
+	)
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) {
 			h.responder.JsonErr(w, http.StatusNotFound, fmt.Errorf("user not found with id: %d", id))

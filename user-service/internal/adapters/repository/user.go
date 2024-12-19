@@ -22,6 +22,7 @@ func (r *UserPostgresRepositoryImpl) rowToUserModel(row []any) *domain.UserModel
 		row[1].(string),
 		row[2].(string),
 		domain.UserRole().FromStringMust(row[3].(string)),
+		row[4].(string),
 	)
 }
 
@@ -45,10 +46,10 @@ func (r *UserPostgresRepositoryImpl) GetByID(ctx context.Context, id int64) (*do
 	return nil, ports.ErrNotFound
 }
 
-func (r *UserPostgresRepositoryImpl) Create(ctx context.Context, in *ports.CreateUserIn) (*domain.UserModel, error) {
-	query := "INSERT INTO users (firstname, lastname) VALUES ($1, $2) RETURNING *"
+func (r *UserPostgresRepositoryImpl) Create(ctx context.Context, firstname string, lastname string, hashedPassword string) (*domain.UserModel, error) {
+	query := "INSERT INTO users (firstname, lastname, hashed_password) VALUES ($1, $2, $3) RETURNING *"
 
-	rows, err := r.db.Query(ctx, query, in.Firstname, in.Lastname)
+	rows, err := r.db.Query(ctx, query, firstname, lastname, hashedPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -65,10 +66,10 @@ func (r *UserPostgresRepositoryImpl) Create(ctx context.Context, in *ports.Creat
 	return nil, ports.ErrNotFound
 }
 
-func (r *UserPostgresRepositoryImpl) Update(ctx context.Context, id int64, in *ports.UpdateUserIn) (*domain.UserModel, error) {
+func (r *UserPostgresRepositoryImpl) Update(ctx context.Context, id int64, firstname string, lastname string) (*domain.UserModel, error) {
 	query := "UPDATE users SET firstname=$1, lastname=$2 WHERE id=$3 RETURNING *"
 
-	rows, err := r.db.Query(ctx, query, in.Firstname, in.Lastname, id)
+	rows, err := r.db.Query(ctx, query, firstname, lastname, id)
 	if err != nil {
 		return nil, err
 	}

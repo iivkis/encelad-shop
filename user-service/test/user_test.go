@@ -3,10 +3,10 @@ package test
 import (
 	"context"
 	"encelad-shared/core/domain"
-	"encelad-shared/core/ports"
 	"encelad-shared/core/ports/portsmock"
-
 	"enceland_user-service/internal/core/services"
+	"fmt"
+
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,6 +14,20 @@ import (
 )
 
 func TestUserServiceCreate(t *testing.T) {
+	type tableItem struct {
+		firstname string
+		lastname  string
+		password  string
+	}
+
+	table := []*tableItem{
+		{
+			firstname: "John",
+			lastname:  "Doe",
+			password:  "password",
+		},
+	}
+
 	ctx := context.Background()
 
 	ctrl := gomock.NewController(t)
@@ -21,27 +35,38 @@ func TestUserServiceCreate(t *testing.T) {
 
 	repo := portsmock.NewMockUserRepository(ctrl)
 
-	in := &ports.CreateUserIn{
-		Firstname: "John",
-		Lastname:  "Doe",
-	}
-
-	out := domain.NewUserModel(
-		1,
-		"John",
-		"Doe",
-		domain.UserRole().User,
-	)
-
 	repo.
 		EXPECT().
-		Create(ctx, in).
-		Return(out, nil).
-		Times(1)
+		Create(
+			ctx,
+			gomock.Any(),
+			gomock.Any(),
+			gomock.Any(),
+		).
+		DoAndReturn(func(ctx context.Context, firstname string, lastname string, hashedPassword string) (*domain.UserModel, error) {
+			return domain.NewUserModel(
+				1,
+				firstname,
+				lastname,
+				domain.UserRole().User,
+				hashedPassword,
+			), nil
+		})
 
-	userService := services.NewUserService(repo)
+	service := services.NewUserService(repo)
 
-	result, err := userService.Create(ctx, in)
-	assert.Nil(t, err)
-	assert.Equal(t, out, result)
+	for _, tt := range table {
+		user, err := service.Create(
+			ctx,
+			tt.firstname,
+			tt.lastname,
+			tt.password,
+		)
+		fmt.Println(user)
+		assert.Nil(t, err)
+		assert.Equal(t, tt.firstname, user.GetFirstname())
+		assert.Equal(t, tt.lastname, user.GetLastname())
+		assert.Equal(t, domain.UserRole().User, user.GetRole())
+		assert.True(t, user.ComparePassword(tt.password))
+	}
 }
