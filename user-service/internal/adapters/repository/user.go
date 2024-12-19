@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	"enceland_user-service/internal/core/domain"
-	"enceland_user-service/internal/core/ports"
+	"encelad-shared/domain"
+	"encelad-shared/ports"
 )
 
 type UserPostgresRepositoryImpl struct {

@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"enceland_user-service/internal/adapters/database"
+	"encelad-shared/adapters/database"
+	"encelad-shared/config"
+	"encelad-shared/ports"
 	httphandler "enceland_user-service/internal/adapters/handler/http"
 	"enceland_user-service/internal/adapters/repository"
-	"enceland_user-service/internal/config"
-	"enceland_user-service/internal/core/ports"
 	"enceland_user-service/internal/core/services"
 	"fmt"
 	"net/http"

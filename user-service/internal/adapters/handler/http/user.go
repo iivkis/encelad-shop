@@ -1,7 +1,7 @@
 package httphandler
 
 import (
-	"enceland_user-service/internal/core/ports"
+	"encelad-shared/ports"
 	"encoding/json"
 	"errors"
 	"fmt"

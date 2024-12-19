@@ -4,7 +4,7 @@ package ports
 
 import (
 	"context"
-	"enceland_user-service/internal/core/domain"
+	"encelad-shared/domain"
 )
 
 type CreateUserIn struct {

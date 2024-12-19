@@ -2,9 +2,10 @@ package test
 
 import (
 	"context"
-	"enceland_user-service/internal/core/domain"
-	"enceland_user-service/internal/core/ports"
-	"enceland_user-service/internal/core/ports/portsmock"
+	"encelad-shared/domain"
+	"encelad-shared/ports"
+	"encelad-shared/ports/portsmock"
+
 	"enceland_user-service/internal/core/services"
 	"testing"
 

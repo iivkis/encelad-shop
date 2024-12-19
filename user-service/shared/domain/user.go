@@ -16,6 +16,7 @@ func NewUserModel(id int64, firstname, lastname string, role UserRoleEnum) *User
 	}
 }
 
+// 1
 func (m *UserModel) SetID(id int64) {
 	m.id = id
 }
