@@ -2,7 +2,7 @@ module enceland_user-service
 
 go 1.23.4
 
-replace encelad-shared => ./shared
+replace encelad-shared => ../shared
 
 require encelad-shared v1.0.0
 

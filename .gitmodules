@@ -1,6 +1,0 @@
-[submodule "user-service/shared"]
-	path = user-service/shared
-	url = git@github.com:iivkis/encelad-shared.git
-[submodule "product-service/shared"]
-	path = product-service/shared
-	url = git@github.com:iivkis/encelad-shared.git

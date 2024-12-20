@@ -1,15 +1,19 @@
 FROM golang:alpine3.21
 
-WORKDIR /app
+WORKDIR /
 
-COPY ./shared/go.mod ./shared/go.sum ./shared/
+COPY ./shared/go.mod ./shared/go.sum /shared/
 
-COPY go.mod go.sum ./
+RUN cd /shared && go mod download
 
-RUN go mod download
+COPY ./shared /shared
 
-COPY . .
+COPY ./user-service/go.mod ./user-service/go.sum /service/
 
-RUN go build -o service -ldflags="-s -w" ./cmd
+RUN cd /service && go mod download
 
-CMD ["./service"]
+COPY ./user-service /service
+
+RUN cd /service && go build -o app ./cmd
+
+CMD ["./service/app"]
