@@ -30,7 +30,7 @@ func (w *Responder) JsonErr(writer http.ResponseWriter, status int, err error) {
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(status)
 
-	data := make(map[string]string, 1)
+	data := make(map[string]string)
 	if err != nil {
 		data["error"] = err.Error()
 	}
