@@ -17,7 +17,7 @@ type PGXAdapter struct {
 	pool *pgxpool.Pool
 }
 
-func NewPGXAdapter(connStr string) (*PGXAdapter, error) {
+func NewPgxAdapter(connStr string) (*PGXAdapter, error) {
 	cfg, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return nil, err

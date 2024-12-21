@@ -10,28 +10,35 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
 )
 
-type UserHTTPHandler struct {
-	UserService ports.UserService
-	responder   *responder.Responder
-}
-
-func NewUserHTTPHandler(UserService ports.UserService) *UserHTTPHandler {
-	return &UserHTTPHandler{
-		UserService: UserService,
-		responder:   responder.NewResponder(),
-	}
-}
-
-type UserGetByIDResponse struct {
+type UserModelReponse struct {
 	ID        int64  `json:"id"`
 	Firstname string `json:"firstname"`
 	Lastname  string `json:"lastname"`
 	Role      string `json:"role"`
 }
 
-func (h *UserHTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+type UserHttpHandler struct {
+	userService ports.UserService
+	responder   *responder.Responder
+	validate    *validator.Validate
+}
+
+func NewUserHttpHandler(userService ports.UserService) *UserHttpHandler {
+	return &UserHttpHandler{
+		userService: userService,
+		responder:   responder.NewResponder(),
+		validate:    validator.New(),
+	}
+}
+
+type UserGetByIDResponse struct {
+	UserModelReponse
+}
+
+func (h *UserHttpHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -40,7 +47,7 @@ func (h *UserHTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.UserService.GetByID(r.Context(), id)
+	user, err := h.userService.GetByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) {
 			h.responder.JsonErr(w, http.StatusNotFound, fmt.Errorf("user not found with id: %d", id))
@@ -53,36 +60,40 @@ func (h *UserHTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	h.responder.JsonOk(
 		w,
 		http.StatusOK,
-		UserGetByIDResponse{
-			ID:        user.GetID(),
-			Firstname: user.GetFirstname(),
-			Lastname:  user.GetLastname(),
-			Role:      user.GetRole().String(),
+		&UserGetByIDResponse{
+			UserModelReponse{
+				ID:        user.GetID(),
+				Firstname: user.GetFirstname(),
+				Lastname:  user.GetLastname(),
+				Role:      user.GetRole().String(),
+			},
 		},
 	)
 }
 
 type UserCreateRequest struct {
-	Firstname string `json:"firstname"`
-	Lastname  string `json:"lastname"`
-	Password  string `json:"password"`
+	Firstname string `json:"firstname" validate:"required,min=2,max=64"`
+	Lastname  string `json:"lastname" validate:"required,min=2,max=64"`
+	Password  string `json:"password" validate:"required,min=8,max=64"`
 }
 
 type UserCreateResponse struct {
-	ID        int64  `json:"id"`
-	Firstname string `json:"firstname"`
-	Lastname  string `json:"lastname"`
-	Role      string `json:"role"`
+	UserModelReponse
 }
 
-func (h *UserHTTPHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *UserHttpHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var body UserCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		h.responder.JsonErr(w, http.StatusBadRequest, err)
 		return
 	}
 
-	user, err := h.UserService.Create(r.Context(),
+	if err := h.validate.Struct(body); err != nil {
+		h.responder.JsonErr(w, http.StatusBadRequest, err)
+		return
+	}
+
+	user, err := h.userService.Create(r.Context(),
 		body.Firstname,
 		body.Lastname,
 		body.Password,
@@ -96,24 +107,27 @@ func (h *UserHTTPHandler) Create(w http.ResponseWriter, r *http.Request) {
 	h.responder.JsonOk(
 		w,
 		http.StatusCreated,
-		UserCreateResponse{
-			ID:        user.GetID(),
-			Firstname: user.GetFirstname(),
-			Lastname:  user.GetLastname(),
-			Role:      user.GetRole().String(),
+		&UserCreateResponse{
+			UserModelReponse{
+				ID:        user.GetID(),
+				Firstname: user.GetFirstname(),
+				Lastname:  user.GetLastname(),
+				Role:      user.GetRole().String(),
+			},
 		},
 	)
 }
 
 type UserUpdateRequest struct {
-	UserCreateRequest
+	Firstname string `json:"firstname" validate:"required,min=2,max=64"`
+	Lastname  string `json:"lastname" validate:"required,min=2,max=64"`
 }
 
 type UserUpdateResponse struct {
-	UserCreateResponse
+	UserModelReponse
 }
 
-func (h *UserHTTPHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *UserHttpHandler) Update(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -128,7 +142,12 @@ func (h *UserHTTPHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.UserService.Update(
+	if err := h.validate.Struct(body); err != nil {
+		h.responder.JsonErr(w, http.StatusBadRequest, err)
+		return
+	}
+
+	user, err := h.userService.Update(
 		r.Context(),
 		id,
 		body.Firstname,
@@ -147,7 +166,7 @@ func (h *UserHTTPHandler) Update(w http.ResponseWriter, r *http.Request) {
 		w,
 		http.StatusOK,
 		UserUpdateResponse{
-			UserCreateResponse{
+			UserModelReponse{
 				ID:        user.GetID(),
 				Firstname: user.GetFirstname(),
 				Lastname:  user.GetLastname(),

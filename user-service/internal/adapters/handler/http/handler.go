@@ -1,31 +1,35 @@
 package httphandler
 
-import "github.com/go-chi/chi/v5"
+import (
+	"net/http"
 
-type HTTPHandler struct {
-	Router          chi.Router
-	UserHTTPHandler *UserHTTPHandler
+	"github.com/go-chi/chi/v5"
+)
+
+type HttpHandler struct {
+	router          chi.Router
+	userHttpHandler *UserHttpHandler
 }
 
-func NewHTTPHandler(
-	UserHTTPHandler *UserHTTPHandler,
-) *HTTPHandler {
-	handler := &HTTPHandler{
-		Router:          chi.NewRouter(),
-		UserHTTPHandler: UserHTTPHandler,
+func NewHttpHandler(
+	userHttpHandler *UserHttpHandler,
+) http.Handler {
+	handler := &HttpHandler{
+		router:          chi.NewRouter(),
+		userHttpHandler: userHttpHandler,
 	}
-	handler.setupAPI()
-	return handler
+	handler.setup()
+	return handler.router
 }
 
-func (h *HTTPHandler) setupAPI() {
+func (h *HttpHandler) setup() {
 	api := chi.NewRouter()
 
 	api.Route("/users", func(r chi.Router) {
-		r.Get("/{id}", h.UserHTTPHandler.GetByID)
-		r.Post("/", h.UserHTTPHandler.Create)
-		r.Put("/{id}", h.UserHTTPHandler.Update)
+		r.Get("/{id}", h.userHttpHandler.GetByID)
+		r.Post("/", h.userHttpHandler.Create)
+		r.Put("/{id}", h.userHttpHandler.Update)
 	})
 
-	h.Router.Mount("/api/v1", api)
+	h.router.Mount("/api/v1", api)
 }

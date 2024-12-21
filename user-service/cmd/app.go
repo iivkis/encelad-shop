@@ -6,36 +6,31 @@ import (
 	httphandler "enceland_user-service/internal/adapters/handler/http"
 	"enceland_user-service/internal/adapters/repository"
 	"enceland_user-service/internal/core/services"
-	"fmt"
-	"net/http"
+
+	httpserver "encelad-shared/pkg/http_server"
 )
 
 func main() {
-	db, err := database.NewPGXAdapter(fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		config.Config().PostgresDB.User,
-		config.Config().PostgresDB.Password,
-		config.Config().PostgresDB.Host,
-		config.Config().PostgresDB.Port,
-		config.Config().PostgresDB.Name,
-	))
+	db, err := database.NewPgxAdapter(config.Config().PostgresConnStr())
 	if err != nil {
 		panic(err)
 	}
 
-	UserRepository := repository.NewUserPostgresRepository(db)
+	userRepo := repository.NewUserPostgresRepository(db)
 
-	UserService := services.NewUserService(UserRepository)
+	userService := services.NewUserService(userRepo)
 
-	HTTPHandler := httphandler.NewHTTPHandler(
-		httphandler.NewUserHTTPHandler(
-			UserService,
+	httpHandler := httphandler.NewHttpHandler(
+		httphandler.NewUserHttpHandler(
+			userService,
 		),
 	)
 
-	fmt.Println("server is runnig")
-	if err := http.ListenAndServe(":80", HTTPHandler.Router); err != nil {
+	httpServer := httpserver.NewHttpServer()
+	if err := httpServer.Listen(
+		config.Config().ServerAddress(),
+		httpHandler,
+	); err != nil {
 		panic(err)
 	}
-
 }
